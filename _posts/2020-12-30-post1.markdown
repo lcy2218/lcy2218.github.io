@@ -4,7 +4,10 @@ title: jekyll学习
 date: 2020-12-30 15:20:23 +0900
 category: jekyll-learn
 ---
-# post-sample
+# 0x0 本地启动jekyll
+`bundle exec jekyll serve`
+# 0x1 jekyll目录结构以及常见文件作用
+![目录](https://lcy2218.github.io/images/20201230-1.png)
 > Hello!
 
 This is code
