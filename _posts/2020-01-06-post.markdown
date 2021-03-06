@@ -7,7 +7,7 @@ category: exploiting
 
 ## 0x0 进入shodan.io
 使用科学上网，进入[shodan.io](https://www.shodan.io/)
-![](/images/20200106-1.png)
+![](https://lcy2218.github.io/images/20200106-1.png)
 
 ## 0x1 搜索jaws/1.1漏洞
 
@@ -23,13 +23,13 @@ category: exploiting
 ```ruby
 搜索:jaws/1.1
 ```
-![](/images/20200106-2.png)
+![](https://lcy2218.github.io/images/20200106-2.png)
 
 ## 0x2 筛选搜索到的结果
-![](/images/20200106-3.png)
+![](https://lcy2218.github.io/images/20200106-3.png)
 
 ## 0x3 利用漏洞
-![](/images/20200106-4.png)
+![](https://lcy2218.github.io/images/20200106-4.png)
 - 可能存在的漏洞
     1. 空密码可以直接登录
     2. 根据JS代码，从if语句中可以看出cookie的dvr_camcnt和dvr_usr和dvr_pwd只要不为空就可以了，这个判定语句的dvr_camcnt是会自动填写的
@@ -53,7 +53,7 @@ location.href = “/index.html”;
 
 }
 ```
-![](/images/20200106-5.png)
+![](https://lcy2218.github.io/images/20200106-5.png)
 
 ## 0x4 注解
 
