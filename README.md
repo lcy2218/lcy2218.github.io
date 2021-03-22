@@ -12,5 +12,5 @@ permalink: /about/
 
 - 系统的学习完渗透测试的各类流程后，会重新学习逆向方面的知识
 
-> “ slow is fast                               ”
+> slow is fast                               
 
