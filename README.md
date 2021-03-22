@@ -1,25 +1,16 @@
 ---
 layout: page
-title: About
+title: 关于本人
 permalink: /about/
 ---
 
-## Theme Monos
-> Simple and lightweight theme for Jekyll
 
-### Features
-- Responsive.
-- Syntax Highlight
-- Most optimized theme for tech blog.
-- Lightweight with minimum stylesheet.
-- Easy to customize.
-- Offers category menu.
 
-### _config.yml
-> Code block will look like this.
-```yml
-highlighter-theme: monokai //you can change your syntax color scheme.
-date_format: "%Y-%M-%D" //and date format.
-```
 
-### Screenshots
+## 一个还在努力学习中的未来渗透测试工程师，利用博客记录学习中遇到的趣事
+
+
+- 系统的学习完渗透测试的各类流程后，会重新学习逆向方面的知识
+
+> " slow is fast                               "
+
