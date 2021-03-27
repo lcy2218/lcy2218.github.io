@@ -2,7 +2,7 @@
 layout: post
 title: jekyll学习
 date: 2020-12-30 15:20:23 +0900
-category: jekyll-learn
+category: web
 ---
 <!-- TOC -->
 

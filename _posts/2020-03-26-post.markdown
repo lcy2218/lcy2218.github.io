@@ -59,7 +59,7 @@ category: exploiting
     net localgroup administrators lcy /add  //把lcy加入管理员用户
 ```
 
-![](/images/20210326-7.png)
+![](https://lcy2218.github.io/images/20210326-7.png)
 
 ## 0x4 开启远程桌面端口以及远程连接
 
@@ -80,5 +80,5 @@ category: exploiting
     //在另一个终端开启远程桌面
 ```
 
-![](/images/20210326-8.png)
-![](/images/20210326-9.png)
+![](https://lcy2218.github.io/images/20210326-8.png)
+![](https://lcy2218.github.io/images/20210326-9.png)
