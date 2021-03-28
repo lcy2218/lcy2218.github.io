@@ -1,0 +1,156 @@
+---
+layout: post
+title:  ensp_DHCP中继模拟
+date: 2021-03-28 19:39:51 +0900
+category: routing
+---
+
+<!-- TOC -->
+
+- [0x0 DHCP原理](#0x0-dhcp原理)
+- [0x1 拓扑图](#0x1-拓扑图)
+- [0x2 指令](#0x2-指令)
+- [0x3 PC获取IP](#0x3-pc获取ip)
+- [0x4 连通性测试](#0x4-连通性测试)
+
+<!-- /TOC -->
+
+## 0x0 DHCP原理
+1. DHCP服务应用
+- DHCP(动态地址分配)
+- 自动分配&emsp;动态分配&emsp;手工分配
+- &ensp;永久&ensp;&emsp;&emsp;时间限制&emsp;
+2. DHCP服务过程
+- DHCP Discover：广播发送，目的是发现网络中的DHCP Server。所有收到Discover报文的
+DHCP Server都会发出响应。
+- DHCP Offer ：Server收到Discover报文后，使用Offer向Client提供可用的IP地址及
+参数。目的是告知Client本Server可以为其提供IP地址。
+- DHCP Request：用于向Server请求IP参数或续租。回应第一个Offer时，广播发送；租期50%时，
+单播发送；租期87.5%时，广播发送。
+- DHCP ACK： DHCP Server收到Request报文后，发送ACK报文作为回应，通知Client可以
+使用分配的IP地址以及其他参数。
+- DHCP Release：当Client不再需要使用分配IP地址时，就会主动向DHCP Server发送Release
+报文，告知不再需要分配IP地址，DHCP Server会释放被绑定的租约。
+![](/images/20210328-1.png)
+3. DHCP中继(DHCP Relay)
+- 当DHCP服务器位于局域网外部时，局域网内部的设备需要通过DHCP中继来获取IP地址
+![](/images/20210328-2.png)
+- DHCP中继工作过程
+![](/images/20210328-3.png)
+
+
+## 0x1 拓扑图
+![](/images/20210328-4.png)
+- 要求
+1. LSW10为DHCP中继
+2. LSW11为DHCP服务器，分配192.168.1.0的地址
+3. PC1位于vlan10，PC2位于vlan20
+4. AR4为DHCP服务器，分配192.168.2.0的地址，AR4地址为10.10.10.2/24
+5. 实现PC1与PC2获取地址并互通，PC2可以访问AR4
+
+## 0x2 指令
+- LSW8
+```c
+vlan batch 10 20
+interface GigabitEthernet0/0/1  //g0/0/1
+ port link-type trunk
+ port trunk allow-pass vlan 2 to 4094
+interface GigabitEthernet0/0/2  //g0/0/2
+ port link-type access
+ port default vlan 10
+interface GigabitEthernet0/0/3  //g0/0/3
+ port link-type trunk
+ port trunk allow-pass vlan 2 to 4094
+```
+- LSW9
+```c
+vlan batch 10 20
+interface GigabitEthernet0/0/1  //g0/0/1
+ port link-type access
+ port default vlan 20
+interface GigabitEthernet0/0/2  //g0/0/2
+ port link-type trunk
+ port trunk allow-pass vlan 2 to 4094
+interface GigabitEthernet0/0/3  //g0/0/3
+ port link-type trunk
+ port trunk allow-pass vlan 2 to 4094
+```
+- LSW11
+```c
+vlan batch 10 20
+dhcp enable
+ip pool 192.168.2.0  //设置地址池
+ gateway-list 192.168.2.2
+ network 192.168.2.0 mask 255.255.255.0
+ dns-list 8.8.8.8
+interface Vlanif10  //SVI虚拟地址
+ ip address 192.168.1.2 255.255.255.0
+interface Vlanif20  //SVI虚拟地址
+ ip address 192.168.2.2 255.255.255.0
+ dhcp select global
+interface GigabitEthernet0/0/1  //g0/0/1
+ port link-type trunk
+ port trunk allow-pass vlan 2 to 4094
+interface GigabitEthernet0/0/2 //g0/0/2
+ port link-type trunk
+ port trunk allow-pass vlan 2 to 4094
+interface GigabitEthernet0/0/3 //g0/0/3
+ port link-type trunk
+ port trunk allow-pass vlan 2 to 4094
+ //一条静态路由就可以打通LSW10和LSW11
+ip route-static 10.10.10.0 255.255.255.0 192.168.1.1 //配置静态路由访问外部DHCP服务器
+```
+
+- LSW10（DHCP中继）
+```c
+vlan batch 10 20 100
+dhcp enable
+interface Vlanif10  //虚拟接口 配置中继，vlan10 的DHCP服务器为10.10.10.2
+ ip address 192.168.1.1 255.255.255.0
+ dhcp select relay
+ dhcp relay server-ip 10.10.10.2
+ip address 192.168.2.1 255.255.255.0 //siv
+interface Vlanif100  //
+ ip address 10.10.10.1 255.255.255.0
+ //以下两条指令应该可不用
+ //dhcp select relay
+ //dhcp relay server-ip 10.10.10.2
+interface GigabitEthernet0/0/1 //g0/0/1
+ port link-type access
+ port default vlan 100
+interface GigabitEthernet0/0/2 //g0/0/2
+ port link-type trunk
+ port trunk allow-pass vlan 2 to 4094
+interface GigabitEthernet0/0/3 //g0/0/3
+ port link-type trunk
+ port trunk allow-pass vlan 2 to 4094
+interface GigabitEthernet0/0/4 //g0/0/4
+ port link-type trunk
+ port trunk allow-pass vlan 2 to 4094
+```
+
+- AR4（DHCP服务器）
+```c
+dhcp enable
+ip pool dhcp1   //DHCP地址池
+ gateway-list 192.168.1.1 
+ network 192.168.1.0 mask 255.255.255.0 
+ dns-list 114.114.114.114 
+interface GigabitEthernet0/0/0  //设置服务器地址
+ ip address 10.10.10.2 255.255.255.0 
+ dhcp select global
+ip route-static 192.168.1.0 255.255.255.0 10.10.10.1  //向外的静态路由
+ip route-static 192.168.2.0 255.255.255.0 10.10.10.1  //向外的静态路由
+```
+
+## 0x3 PC获取IP
+![](/images/20210328-5.png)
+![](/images/20210328-6.png)
+
+## 0x4 连通性测试
+- PC1->PC2
+![](/images/20210328-7.png)
+- PC2->AR4
+![](/images/20210328-8.png)
+- AR4->LSW11的SVI
+![](/images/20210328-9.png)
