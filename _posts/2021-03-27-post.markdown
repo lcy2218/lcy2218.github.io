@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  ms14-064漏洞利用(钓鱼模拟)
+title:  ms14_064漏洞利用(钓鱼模拟)
 date: 2021-03-27 16:18:29 +0900
 category: exploiting
 ---
