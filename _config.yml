@@ -22,7 +22,7 @@ title: psyduck
 email: 2218932687@qq.com
 description: slow is fast # this means to ignore newlines until "baseurl:"
   
-baseurl: "/" # the subpath of your site, e.g. /blog
+#baseurl: "/" # the subpath of your site, e.g. /blog
 url: "http://lcy2218.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 github_username: lcy2218
 highlighter: rouge

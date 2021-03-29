@@ -1,0 +1,239 @@
+---
+layout: post
+title:  ensp_NAT地址转换相关场景
+date: 2021-03-29 21:22:40 +0900
+category: routing
+---
+
+## 0x0 NAT相关原理
+1. NAT地址转化协议用于将内网IP转化为一个公网IP,从而解决地址不够用的问题
+2. NAT地址转化的情况
+- 静态NAT：一台设备一个公网地址，比较鸡肋
+- 动态NAT ：easy ip
+- 基于端口的NAT：多台设备共享一个IP，但是对应的端口号不同
+
+## 0x1 场景一 拓扑图
+![](/images/20210329-1-1.png)
+- 要求
+1. 内部主机使用202.202.202.3-202.202.202.4地址池
+2. 服务器对外使用202.202.202.6地址
+3. 各个网段互通
+
+## 0x2 指令
+
+- R1
+```c
+interface Ethernet0/0/0
+ ip address 192.168.1.2 255.255.255.252
+interface Ethernet0/0/1
+ ip address 192.168.36.1 255.255.255.0
+rip 1
+ version 2
+ network 192.168.1.0
+ network 192.168.36.0
+```
+
+- R5
+```c
+interface Ethernet0/0/0
+ ip address 192.168.22.1 255.255.255.0
+interface Ethernet0/0/1
+ ip address 192.168.1.1 255.255.255.252
+interface GigabitEthernet0/0/0
+ ip address 192.168.2.9 255.255.255.248
+rip 1
+ version 2
+ network 192.168.22.0
+ network 192.168.1.0
+ network 192.168.2.0
+```
+
+- AR2
+```c
+interface GigabitEthernet0/0/0
+ ip address 192.168.2.10 255.255.255.248 
+interface GigabitEthernet0/0/1
+ ip address 202.202.202.2 255.255.255.248 
+rip 1
+ version 2
+ network 202.202.202.0
+ network 192.168.2.0
+nat address-group 1 202.202.202.3 202.202.202.4 //地址池设置
+acl number 2000  
+ rule 5 permit source 192.168.36.0 0.0.0.255 
+interface GigabitEthernet0/0/1
+nat static global 202.202.202.6 inside 192.168.22.22 netmask 255.255.255.255  //静态NAT
+ nat outbound 2000 address-group 1   //esay iP
+```
+
+- R7
+```c
+interface Ethernet0/0/0
+ ip address 202.202.202.1 255.255.255.248
+interface Ethernet0/0/1
+ ip address 200.200.200.1 255.255.255.0
+rip 1
+ version 2
+ network 202.202.202.0
+ network 200.200.200.0
+```
+## 0x3 连通性测试
+
+- 地址转化 PC1(192.168.36.10)->PC5(200.200.200.100)
+![](/images/20210329-1-2.png)
+
+- internet访问服务器 PC5(200.200.200.5)->server(202.202.202.6)
+![](/images/20210329-1-3.png)
+
+## 0x4 场景二 拓扑图
+![](/images/20210329-1-4.png)
+- 要求
+1. 内部主机使用202.202.202.3-202.202.202.4地址池
+2. 服务器对外使用202.202.202.6地址->服务器对外使用200.200.1.6地址
+3. 各个网段互通
+
+## 0x5 指令
+
+- R1
+```c
+interface Ethernet0/0/0
+ ip address 192.168.1.2 255.255.255.252
+interface Ethernet0/0/1
+ ip address 192.168.36.1 255.255.255.0
+rip 1
+ version 2
+ network 192.168.1.0
+ network 192.168.36.0
+```
+
+- R5
+```c
+interface Ethernet0/0/0
+ ip address 192.168.22.1 255.255.255.0
+interface Ethernet0/0/1
+ ip address 192.168.1.1 255.255.255.252
+interface GigabitEthernet0/0/0
+ ip address 192.168.2.9 255.255.255.248
+rip 1
+ version 2
+ network 192.168.22.0
+ network 192.168.1.0
+ network 192.168.2.0
+```
+
+- AR2
+```c
+interface GigabitEthernet0/0/0
+ ip address 192.168.2.10 255.255.255.248 
+interface GigabitEthernet0/0/1
+ ip address 202.202.202.2 255.255.255.248 
+rip 1
+ version 2
+ network 202.202.202.0
+ network 192.168.2.0
+nat address-group 1 202.202.202.3 202.202.202.4 //地址池设置
+acl number 2000  
+ rule 5 permit source 192.168.36.0 0.0.0.255 
+interface GigabitEthernet0/0/1
+nat static global 200.200.1.6 inside 192.168.22.22 netmask 255.255.255.255  //静态NAT
+ nat outbound 2000 address-group 1   //esay iP
+```
+- R7
+```c
+interface Ethernet0/0/0
+ ip address 202.202.202.1 255.255.255.248
+interface Ethernet0/0/1
+ ip address 200.200.200.1 255.255.255.0
+interface GigabitEthernet0/0/0
+ ip address 200.200.100.1 255.255.255.0
+rip 1
+ version 2
+ network 202.202.202.0
+ network 200.200.200.0
+ network 200.200.100.0
+ip route-static 200.200.1.0 255.255.255.0 202.202.202.2  //一条到200.200.1.0的静态路由
+```
+
+## 0x6 连通性测试
+- internet访问服务器 PC6(200.200.100.55)->server(200.200.1.6)
+![](/images/20210329-1-5.png)
+## 0x7 场景三 拓扑图
+![](/images/20210329-1-6.png)
+- 要求
+1. 内部主机使用202.202.202.3-202.202.202.4地址池
+2. 服务器对外使用202.202.202.6:21 &ensp;&ensp;202.202.202.6:80(可以使用ftp和http服务)
+3. 各个网段互通
+4. ~~未实现使用202.202.202.2:21等功能~~
+
+## 0x8 指令
+
+- R1
+```c
+interface Ethernet0/0/0
+ ip address 192.168.1.2 255.255.255.252
+interface Ethernet0/0/1
+ ip address 192.168.36.1 255.255.255.0
+rip 1
+ version 2
+ network 192.168.1.0
+ network 192.168.36.0
+```
+
+- R5
+```c
+interface Ethernet0/0/0
+ ip address 192.168.22.1 255.255.255.0
+interface Ethernet0/0/1
+ ip address 192.168.1.1 255.255.255.252
+interface GigabitEthernet0/0/0
+ ip address 192.168.2.9 255.255.255.248
+rip 1
+ version 2
+ network 192.168.22.0
+ network 192.168.1.0
+ network 192.168.2.0
+```
+
+- AR2
+```c
+interface GigabitEthernet0/0/0
+ ip address 192.168.2.10 255.255.255.248 
+interface GigabitEthernet0/0/1
+ ip address 202.202.202.2 255.255.255.248 
+rip 1
+ version 2
+ network 202.202.202.0
+ network 192.168.2.0
+nat address-group 1 202.202.202.3 202.202.202.4 //地址池设置
+acl number 2000  
+ rule 5 permit source 192.168.36.0 0.0.0.255 
+interface GigabitEthernet0/0/1
+//nat static global 202.202.202.6 inside 192.168.22.22 netmask 255.255.255.255  //静态NAT
+ nat outbound 2000 address-group 1   //esay iP
+nat server protocol tcp global 202.202.202.6 20 inside 192.168.22.22 20
+ nat server protocol tcp global 202.202.202.6 ftp inside 192.168.22.22 ftp
+ nat server protocol tcp global 202.202.202.6 telnet inside 192.168.22.22 telnet
+ nat server protocol tcp global 202.202.202.6 www inside 192.168.22.22 www
+```
+- R7
+```c
+interface Ethernet0/0/0
+ ip address 202.202.202.1 255.255.255.248
+interface Ethernet0/0/1
+ ip address 200.200.200.1 255.255.255.0
+interface GigabitEthernet0/0/0
+ ip address 200.200.100.1 255.255.255.0
+rip 1
+ version 2
+ network 202.202.202.0
+ network 200.200.200.0
+ network 200.200.100.0
+```
+## 0x9 连通性测试
+- PC5(200.200.200.5)ping服务器(202.202.202.6)
+![](/images/20210329-1-7.png)
+- client2(200.200.200.100)使用ftp服务器登录(202.202.202.6:21)
+![](/images/20210329-1-8.png)
+- client2(200.200.200.100)使用ftp服务器登录(202.202.202.6:80)
+![](/images/20210329-1-9.png)
+![](/images/20210329-1-10.png)
