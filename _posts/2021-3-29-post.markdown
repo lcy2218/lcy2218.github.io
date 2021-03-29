@@ -33,7 +33,7 @@ category: routing
 - 毒性逆转：从收到报文的端口再发出 设16跳
 
 ## 0x2 拓扑图
-![](/images/20210329-1.png)
+![](https://lcy2218.github.io/images/20210329-1.png)
 - 要求
 1. 每个路由器设置RIPv2协议
 2. 每台PC之间可以互通
@@ -82,10 +82,10 @@ rip 1   //RIP配置
 
 ## 0x3 连通性测试
 - PC1->PC2
-![](/images/20210329-2.png)
+![](https://lcy2218.github.io/images/20210329-2.png)
 - PC1->PC3
-![](/images/20210329-3.png)
+![](https://lcy2218.github.io/images/20210329-3.png)
 - R2路由表展示
-![](/images/20210329-4.png)
+![](https://lcy2218.github.io/images/20210329-4.png)
 - R1路由表展示
-![](/images/20210329-5.png)
+![](https://lcy2218.github.io/images/20210329-5.png)
