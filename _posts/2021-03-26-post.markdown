@@ -75,7 +75,7 @@ category: exploiting
     Parameters\FirewallPolicy\StandardProfile\GloballyOpenPorts\List /v 3389:TCP /t REG_SZ /d 
     3389:TCP:*:Enabled:@xpsp2res.dll,-22009 /f
     //取消xp&2003系统防火墙对终端服务的限制及IP连接的限制
-    
+
     rdesktop -f -a 16 192.168.88.139:3389
     //在另一个终端开启远程桌面
 ```

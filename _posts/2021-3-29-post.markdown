@@ -1,0 +1,91 @@
+---
+layout: post
+title:  ensp_简单RIP配置
+date: 2021-03-29 11:33:22 +0900
+category: routing
+---
+
+<!-- TOC -->
+
+- [0x0 RIP相关知识](#0x0-rip相关知识)
+- [0x2 拓扑图](#0x2-拓扑图)
+- [0x2 指令](#0x2-指令)
+- [0x3 连通性测试](#0x3-连通性测试)
+
+<!-- /TOC -->
+
+## 0x0 RIP相关知识
+1. RIP协议分为v1和v2 
+- v1：发包不携带子网掩码，使用默认的A,B,C类协议的子网掩码；广播发包
+- v2：无类别路由协议，支持VLSM,CIDR，支持掩码；组播发包224.0.0.9
+2. RIP计时器
+- 更新计时器 &nbsp;30秒   &nbsp;&nbsp;每三十秒发一次 response
+- 失效计时器 &nbsp;180秒   &nbsp;三十秒内未收到
+- 清除计数器 &nbsp;240秒   &nbsp;180+60 删除
+3. 跳数计算
+- 本身跳数设为1，学习到的跳数+1
+4. 环路解决方式
+- 无穷大计数：任何大于16跳的路由视为无效
+- 抑制计数器：收到下一跳的跳数增大的路由，启动抑制计时器进行失效抑制  180秒后会自动失效
+- 水平分割：收到报文的端口不进行发送
+- 路由毒化：在更新报文30秒中，把跳数设为16跳
+- 触发更新：链路断开立刻发 16跳
+- 毒性逆转：从收到报文的端口再发出 设16跳
+
+## 0x2 拓扑图
+![](/images/20210329-1.png)
+- 要求
+1. 每个路由器设置RIPv2协议
+2. 每台PC之间可以互通
+
+## 0x2 指令
+- R1
+```c
+interface Ethernet0/0/0  //e0
+ ip address 192.168.1.1 255.255.255.252
+interface Ethernet0/0/1  //e1
+ ip address 192.168.1.9 255.255.255.252
+interface GigabitEthernet0/0/0  //g0
+ ip address 192.168.20.1 255.255.255.0
+interface GigabitEthernet0/0/1  //g1
+ ip address 192.168.21.1 255.255.255.0
+rip 1   //RIP配置
+ version 2
+ network 192.168.1.0
+ network 192.168.20.0
+ network 192.168.21.0
+```
+
+- R2
+```c
+interface Ethernet0/0/0  //e0
+ ip address 192.168.1.2 255.255.255.252
+interface Ethernet0/0/1  //e1
+ ip address 192.168.36.1 255.255.255.0
+rip 1   //RIP配置
+ version 2
+ network 192.168.36.0
+ network 192.168.1.0
+```
+
+- R3
+```c
+interface Ethernet0/0/0   //e0
+ ip address 192.168.1.10 255.255.255.252
+interface Ethernet0/0/1   //e1
+ ip address 192.168.44.1 255.255.255.0
+rip 1   //RIP配置
+ version 2
+ network 192.168.1.0
+ network 192.168.44.0
+```
+
+## 0x3 连通性测试
+- PC1->PC2
+![](/images/20210329-2.png)
+- PC1->PC3
+![](/images/20210329-3.png)
+- R2路由表展示
+![](/images/20210329-4.png)
+- R1路由表展示
+![](/images/20210329-5.png)

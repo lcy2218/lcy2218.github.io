@@ -31,16 +31,16 @@ DHCP Server都会发出响应。
 使用分配的IP地址以及其他参数。
 - DHCP Release：当Client不再需要使用分配IP地址时，就会主动向DHCP Server发送Release
 报文，告知不再需要分配IP地址，DHCP Server会释放被绑定的租约。
-![](/images/20210328-1.png)
+![](https://lcy2218.github.io/images/20210328-1.png)
 3. DHCP中继(DHCP Relay)
 - 当DHCP服务器位于局域网外部时，局域网内部的设备需要通过DHCP中继来获取IP地址
-![](/images/20210328-2.png)
+![](https://lcy2218.github.io/images/20210328-2.png)
 - DHCP中继工作过程
-![](/images/20210328-3.png)
+![](https://lcy2218.github.io/images/20210328-3.png)
 
 
 ## 0x1 拓扑图
-![](/images/20210328-4.png)
+![](https://lcy2218.github.io/images/20210328-4.png)
 - 要求
 1. LSW10为DHCP中继
 2. LSW11为DHCP服务器，分配192.168.1.0的地址
@@ -144,13 +144,13 @@ ip route-static 192.168.2.0 255.255.255.0 10.10.10.1  //向外的静态路由
 ```
 
 ## 0x3 PC获取IP
-![](/images/20210328-5.png)
-![](/images/20210328-6.png)
+![](https://lcy2218.github.io/images/20210328-5.png)
+![](https://lcy2218.github.io/images/20210328-6.png)
 
 ## 0x4 连通性测试
 - PC1->PC2
-![](/images/20210328-7.png)
+![](https://lcy2218.github.io/images/20210328-7.png)
 - PC2->AR4
-![](/images/20210328-8.png)
+![](https://lcy2218.github.io/images/20210328-8.png)
 - AR4->LSW11的SVI
-![](/images/20210328-9.png)
+![](https://lcy2218.github.io/images/20210328-9.png)

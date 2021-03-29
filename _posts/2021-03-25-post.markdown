@@ -31,7 +31,7 @@ category: routing
 - 最长子网掩码匹配原则
 
 ## 0x1 拓扑图
-![](/images/20210325-1.png)
+![](https://lcy2218.github.io/images/20210325-1.png)
 - 要求
 1. 各个设备互通
 2. 配置各个网段的静态路由
@@ -89,8 +89,8 @@ ip route-static 192.168.18.0 255.255.255.224 192.168.1.5
 ```
 ## 0x3 连通性测试
 - pc1 -> pc5
-![](/images/20210325-2.png)
+![](https://lcy2218.github.io/images/20210325-2.png)
 - pc1 -> r1 g0/0/0(192.168.1.5/30)
-![](/images/20210325-3.png)
+![](https://lcy2218.github.io/images/20210325-3.png)
 - pc3 -> pc6
-![](/images/20210325-4.png)
+![](https://lcy2218.github.io/images/20210325-4.png)
