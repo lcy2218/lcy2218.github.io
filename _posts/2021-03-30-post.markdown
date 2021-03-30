@@ -1,0 +1,95 @@
+---
+layout: post
+title:  ensp_OSPF单区域
+date: 2021-03-30 15:22:08 +0900
+category: routing
+---
+
+<!-- TOC -->
+
+- [0x0 OSPF相关知识](#0x0-ospf相关知识)
+- [0x1 拓扑图](#0x1-拓扑图)
+- [0x2 指令](#0x2-指令)
+- [0x3 连通性测试](#0x3-连通性测试)
+
+<!-- /TOC -->
+
+## 0x0 OSPF相关知识
+
+## 0x1 拓扑图
+![](/images/20210330-1.png)
+- 要求
+1. 内部互通
+2. 内部可以访问外网202.202.202.202/29
+
+## 0x2 指令
+- R1
+```c
+interface Ethernet0/0/0
+ ip address 192.168.1.2 255.255.255.252
+interface Ethernet0/0/1
+ ip address 192.168.1.6 255.255.255.252
+interface GigabitEthernet0/0/0
+ ip address 192.168.36.1 255.255.255.0
+interface GigabitEthernet0/0/1
+ ip address 192.168.37.1 255.255.255.0
+ospf 1 router-id 192.168.0.3
+ area 0.0.0.0
+  network 192.168.0.3 0.0.0.0
+  network 192.168.1.0 0.0.0.3
+  network 192.168.1.4 0.0.0.3
+  network 192.168.36.0 0.0.0.255
+  network 192.168.37.0 0.0.0.255
+```
+- R3
+```c
+interface GigabitEthernet0/0/0
+ ip address 192.168.1.9 255.255.255.252
+interface GigabitEthernet0/0/1
+ ip address 192.168.2.9 255.255.255.248
+interface GigabitEthernet0/0/2
+ ip address 192.168.20.1 255.255.255.0
+interface GigabitEthernet0/0/3
+ ip address 192.168.21.1 255.255.255.0
+ip route-static 0.0.0.0 0.0.0.0 192.168.2.10  //配置去外网的缺省路由
+ospf 1 router-id 192.168.0.1  //声明router-id
+ default-route-advertise always cost 200 type 1  //静态路由重发布
+ area 0.0.0.0
+  network 192.168.0.1 0.0.0.0
+  network 192.168.20.0 0.0.0.255
+  network 192.168.21.0 0.0.0.255
+  network 192.168.1.0 0.0.0.3
+  network 192.168.1.4 0.0.0.3
+  network 192.168.1.8 0.0.0.3
+  network 192.168.2.8 0.0.0.7
+```
+
+- R2
+```c
+interface Ethernet0/0/0
+ ip address 192.168.1.10 255.255.255.252
+interface Ethernet0/0/1
+ ip address 192.168.44.1 255.255.255.0
+ospf 1 router-id 192.168.0.5
+ area 0.0.0.0
+  network 192.168.0.5 0.0.0.0
+  network 192.168.1.8 0.0.0.3
+  network 192.168.44.0 0.0.0.255
+```
+
+- R4
+```c
+interface Ethernet0/0/0
+ ip address 192.168.2.10 255.255.255.248
+interface Ethernet0/0/1
+ ip address 202.202.202.202 255.255.255.248
+ip route-static 192.168.0.0 255.255.0.0 192.168.2.9  //条去内网的静态路由
+```
+
+## 0x3 连通性测试
+
+- 内网通信PC3(192.168.36.10)->PC5(192.168.44.10)
+![](/images/20210330-2.png)
+
+- 内网访问外网PC1(192.168.20.5)->PC5(202.202.202.201)
+![](/images/20210330-3.png)
