@@ -1,0 +1,209 @@
+---
+layout: post
+title:  ensp_DHCP和OSPF综合场景
+date: 2021-03-31 10:17:13 +0900
+category: routing
+---
+
+<!-- TOC -->
+
+- [0x0 OSPF相关知识](#0x0-ospf相关知识)
+- [0x1 拓扑图](#0x1-拓扑图)
+- [0x2 指令](#0x2-指令)
+- [0x3 IP获取以及连通性测试](#0x3-ip获取以及连通性测试)
+
+<!-- /TOC -->
+## 0x0 OSPF相关知识
+1. 为什么使用OSPF
+- ~~RIP是距离矢量路由选择协议，没有网络延迟和链路开销的概念，路由选路基于跳数~~ 
+- OSPF是链路状态路由选择协议，它选择路由的度量标准是带宽，延迟
+- ~~RIP收敛速度过慢,30 180 240~~
+- OSPF收敛速度快
+- OSPF使用的SPF算法从根源上解决了环路的问题
+- 具有区域的概念
+2. 工作模型
+- OSPF：Open Shortest Path First（开放式最短路径优先）
+- 建立邻居 ： Hello探测邻居，形成邻居表
+- 发起路由 ： 发起LSA，存到LSDB
+- 传播路由 ： LSA洪范，直到区域内的LSDB一致
+- 计算路由 ： 以自己的LSA1为根进行SPF计算，算出路由
+- LSA ； 链路状态通告，按一定格式封装后的链路状态信息
+- LSDB ： 链路状态数据库，用来存储LSA的数据库
+- LS ： 链路状态，描述路由器周边的链路的状态
+- Router-id ：配置了Loopback，选取Loopback中最大ID；未配置，选取所有UP接口中数值最大的IP
+- SPF ：最短路径优先?
+>[点击此处查看详情](https://blog.csdn.net/weixin_48444087/article/details/110160831)
+3. 报文类型
+![](/images/20210331-7.png)
+4. 建立邻居
+- 当两台路由器启动了OSPF协议后，两台路由器都会再组播地址224.0.0.5上发送HOLLE报文，发现邻居以后，就开始建立邻居关系(tow-way)，如果一段时间没有收到HELLO报文，就认为邻居关系失效，从邻居表中删除。  
+过程
+![](/images/20210331-8.png)
+5. 详情
+    1. OSPF路由器接口up，发送Hello包，（NBMA模式时将进入Attempt状态）。
+    2. OSPF路由器接口收到Hello包，检查Hello中携带的参数，如果匹配，进入Init状态；并将该Hello包的发送者的Router ID，添加到Hello包（自己将要从该接口发送出去的Hello包）的邻居列表中。
+    3. OSPF路由器接口收到邻居列表中含有自己Router ID的Hello包，进入Two-way状态，形成OSPF邻居关系，并把该路由器的Router ID添加到自己的OSPF邻居表中。
+    4. 在进入Two-way状态后，广播、非广播网络类型的链路，在DR选举等待时间内进行DR选举。点对点没有这个过程。
+    5. 在DR选举完成或跳过DR选举后，建立OSPF邻接关系，进入exstart（准启动）状态；使用类hello的BDB包进行主从关系选举，RID数值大为主，主从优先进入下一个状态Exchange。
+    6. 主从路由器选举完成后，进入Exchange（交换）状态，通过交换携带lsa头部信息的DBD包描述各自的LSDB。
+    7. 进入Loading状态，对链路状态数据库和收到的DBD的LSA头部进行比较，发现自己数据库中没有的LSA就发送LSR，向邻居请求该LSA；邻居收到LSR后，回应LSU；收到邻居发来的LSU，存储这些LSA到自己的链路状态数据库，并发送LSAck确认。
+    8. LSA交换完成后，进入FULL状态，同一个区域内所有OSPF路由器都拥有相同链路状态数据库。
+    9. 定期发送Hello包，维护邻居关系。 
+6. 状态机
+![](/images/20210331-9.png)
+
+## 0x1 拓扑图
+![](/images/20210331-1.png)
+- 要求
+1. AR1为DHCP服务器分发10.0/24 20.0/24 30.0/24 40.0/24网段的地址
+2. LSW1与LSW2为DHCP中继
+3. 各个vlan间互通
+
+## 0x2 指令
+- LSW3
+```c
+interface GigabitEthernet0/0/1
+ port link-type trunk
+ port trunk allow-pass vlan 2 to 4094
+interface GigabitEthernet0/0/2
+ port link-type access
+ port default vlan 10
+interface GigabitEthernet0/0/3
+ port link-type access
+ port default vlan 10
+```
+
+- LSW4
+```c
+interface GigabitEthernet0/0/1
+ port link-type trunk
+ port trunk allow-pass vlan 2 to 4094
+interface GigabitEthernet0/0/2
+ port link-type access
+ port default vlan 20
+```
+
+- LSW5
+```c
+interface GigabitEthernet0/0/1
+ port link-type trunk
+ port trunk allow-pass vlan 2 to 4094
+interface GigabitEthernet0/0/2
+ port link-type access
+ port default vlan 30
+```
+
+- LSW6
+```c
+interface GigabitEthernet0/0/1
+ port link-type trunk
+ port trunk allow-pass vlan 2 to 4094
+interface GigabitEthernet0/0/2
+ port link-type access
+ port default vlan 40
+```
+
+- LSW1
+```c
+vlan batch 10 20 100
+dhcp enable
+interface Vlanif10
+ ip address 192.168.10.1 255.255.255.0
+ dhcp select relay
+ dhcp relay server-ip 10.10.10.1
+interface Vlanif20
+ ip address 192.168.20.1 255.255.255.0
+ dhcp select relay
+ dhcp relay server-ip 10.10.10.1
+interface Vlanif100
+ ip address 10.10.10.2 255.255.255.0
+interface GigabitEthernet0/0/2
+ port link-type access
+ port default vlan 100
+interface GigabitEthernet0/0/1
+ port link-type trunk
+ port trunk allow-pass vlan 2 to 4094
+interface GigabitEthernet0/0/3
+ port link-type trunk
+ port trunk allow-pass vlan 2 to 4094
+ospf 1 router-id 192.168.0.1
+ area 0.0.0.0
+  network 192.168.0.1 0.0.0.0
+  network 192.168.10.0 0.0.0.255
+  network 192.168.20.0 0.0.0.255
+  network 10.10.10.2 0.0.0.0
+```
+
+- LSW2
+```c
+vlan batch 10 20 30 40 100
+dhcp enable
+interface Vlanif30
+ ip address 192.168.30.1 255.255.255.0
+ dhcp select relay
+ dhcp relay server-ip 20.20.20.1
+interface Vlanif40
+ ip address 192.168.40.1 255.255.255.0
+ dhcp select relay
+ dhcp relay server-ip 20.20.20.1
+interface Vlanif100
+ ip address 20.20.20.2 255.255.255.0
+interface GigabitEthernet0/0/1
+ port link-type access
+ port default vlan 100
+interface GigabitEthernet0/0/2
+ port link-type trunk
+ port trunk allow-pass vlan 2 to 4094
+interface GigabitEthernet0/0/3
+ port link-type trunk
+ port trunk allow-pass vlan 2 to 4094
+ospf 1 router-id 192.168.0.2
+ area 0.0.0.0
+  network 192.168.0.2 0.0.0.0
+  network 20.20.20.2 0.0.0.0
+  network 192.168.30.0 0.0.0.255
+  network 192.168.40.0 0.0.0.255
+```
+
+- AR1
+```c
+dhcp enable
+ip pool dhcp1
+ gateway-list 192.168.10.1 
+ network 192.168.10.0 mask 255.255.255.0 
+ dns-list 114.114.114.114 
+ip pool dhcp2
+ gateway-list 192.168.20.1 
+ network 192.168.20.0 mask 255.255.255.0 
+ dns-list 114.114.114.114 
+ip pool dhcp3
+ gateway-list 192.168.30.1 
+ network 192.168.30.0 mask 255.255.255.0 
+ dns-list 8.8.8.8 
+ip pool dhcp4
+ gateway-list 192.168.40.1 
+ network 192.168.40.0 mask 255.255.255.0 
+ dns-list 8.8.8.8
+interface GigabitEthernet0/0/0
+ ip address 10.10.10.1 255.255.255.0 
+ dhcp select global
+interface GigabitEthernet0/0/1
+ ip address 20.20.20.1 255.255.255.0 
+ dhcp select global
+ospf 1 router-id 192.168.0.3 
+ area 0.0.0.0 
+  network 10.10.10.0 0.0.0.255 
+  network 20.20.20.0 0.0.0.255 
+```
+
+## 0x3 IP获取以及连通性测试
+- PC1获取IP以及DNS
+![](/images/20210331-2.png)
+- PC3获取IP以及DNS
+![](/images/20210331-3.png)
+- PC1->PC3（vlan间通信）
+![](/images/20210331-4.png)
+- PC1->PC4（跨网段vlan间通信）
+![](/images/20210331-5.png)
+- LSW1路由表查询
+![](/images/20210331-6.png)
