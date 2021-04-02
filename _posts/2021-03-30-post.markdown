@@ -15,7 +15,43 @@ category: routing
 <!-- /TOC -->
 
 ## 0x0 OSPF相关知识
-
+1. 为什么使用OSPF
+- ~~RIP是距离矢量路由选择协议，没有网络延迟和链路开销的概念，路由选路基于跳数~~ 
+- OSPF是链路状态路由选择协议，它选择路由的度量标准是带宽，延迟
+- ~~RIP收敛速度过慢,30 180 240~~
+- OSPF收敛速度快
+- OSPF使用的SPF算法从根源上解决了环路的问题
+- 具有区域的概念
+2. 工作模型
+- OSPF：Open Shortest Path First（开放式最短路径优先）
+- 建立邻居 ： Hello探测邻居，形成邻居表
+- 发起路由 ： 发起LSA，存到LSDB
+- 传播路由 ： LSA洪范，直到区域内的LSDB一致
+- 计算路由 ： 以自己的LSA1为根进行SPF计算，算出路由
+- LSA ； 链路状态通告，按一定格式封装后的链路状态信息
+- LSDB ： 链路状态数据库，用来存储LSA的数据库
+- LS ： 链路状态，描述路由器周边的链路的状态
+- Router-id ：配置了Loopback，选取Loopback中最大ID；未配置，选取所有UP接口中数值最大的IP
+- SPF ：最短路径优先?
+>[点击此处查看详情](https://blog.csdn.net/weixin_48444087/article/details/110160831)
+3. 报文类型
+![](/images/20210331-7.png)
+4. 建立邻居
+- 当两台路由器启动了OSPF协议后，两台路由器都会再组播地址224.0.0.5上发送HOLLE报文，发现邻居以后，就开始建立邻居关系(tow-way)，如果一段时间没有收到HELLO报文，就认为邻居关系失效，从邻居表中删除。  
+过程
+![](/images/20210331-8.png)
+5. 详情
+    1. OSPF路由器接口up，发送Hello包，（NBMA模式时将进入Attempt状态）。
+    2. OSPF路由器接口收到Hello包，检查Hello中携带的参数，如果匹配，进入Init状态；并将该Hello包的发送者的Router ID，添加到Hello包（自己将要从该接口发送出去的Hello包）的邻居列表中。
+    3. OSPF路由器接口收到邻居列表中含有自己Router ID的Hello包，进入Two-way状态，形成OSPF邻居关系，并把该路由器的Router ID添加到自己的OSPF邻居表中。
+    4. 在进入Two-way状态后，广播、非广播网络类型的链路，在DR选举等待时间内进行DR选举。点对点没有这个过程。
+    5. 在DR选举完成或跳过DR选举后，建立OSPF邻接关系，进入exstart（准启动）状态；使用类hello的BDB包进行主从关系选举，RID数值大为主，主从优先进入下一个状态Exchange。
+    6. 主从路由器选举完成后，进入Exchange（交换）状态，通过交换携带lsa头部信息的DBD包描述各自的LSDB。
+    7. 进入Loading状态，对链路状态数据库和收到的DBD的LSA头部进行比较，发现自己数据库中没有的LSA就发送LSR，向邻居请求该LSA；邻居收到LSR后，回应LSU；收到邻居发来的LSU，存储这些LSA到自己的链路状态数据库，并发送LSAck确认。
+    8. LSA交换完成后，进入FULL状态，同一个区域内所有OSPF路由器都拥有相同链路状态数据库。
+    9. 定期发送Hello包，维护邻居关系。 
+6. 状态机
+![](/images/20210331-9.png)
 ## 0x1 拓扑图
 ![](/images/20210330-1.png)
 - 要求
