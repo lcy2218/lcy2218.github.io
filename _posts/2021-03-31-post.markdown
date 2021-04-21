@@ -2,7 +2,7 @@
 layout: post
 title:  ensp_DHCP和OSPF综合场景
 date: 2021-03-31 10:17:13 +0900
-category: routing
+category: routing-practice
 ---
 
 <!-- TOC -->

@@ -2,7 +2,7 @@
 layout: post
 title:  ensp_简单RIP配置
 date: 2021-03-29 11:33:22 +0900
-category: routing
+category: routing-practice
 ---
 
 <!-- TOC -->

@@ -2,7 +2,7 @@
 layout: post
 title:  ensp_NAT地址转换相关场景
 date: 2021-03-29 21:22:40 +0900
-category: routing
+category: routing-practice
 ---
 <!-- TOC -->
 
